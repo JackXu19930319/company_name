@@ -64,34 +64,47 @@ def read_excel(file_path):
 def find_company(name):
     headers = {
         'User-Agent': fake.user_agent(),
-        # 'Accept-Language': fake.language_code(),
-        # 'Referer': fake.url(),
-        # 'Accept-Encoding': fake.random_element(elements=('gzip', 'deflate')),
-        # 'Connection': fake.random_element(elements=('keep-alive', 'close')),
-        # 可根据需要添加其他头部信息
     }
     status = False
-    msg = ''
     phone = None
-    # print('https://www.findcompany.com.tw/ >>start find[%s]' % name)
-    url = 'https://www.findcompany.com.tw/%s'
-    page = requests.get(url % name, headers=headers)
+    url = 'https://www.findcompany.com.tw'
+    page = requests.get(url + '/%s' % name, headers=headers)
     soup = BeautifulSoup(page.content, 'html.parser')
     if '登記電話' in soup.text:
         try:
             phone = soup.find('table', class_='d-none d-md-table mt-3 table table-bordered font-15').find_all('tr')[3].find_all('td')[1].text.replace(' ', '').strip()
+            status = True
         except:
-            msg = 'https://www.findcompany.com.tw/ <<<<Error有「登記電話」字串，但卻噴錯>>>>'
-    if phone is None:
-        msg = 'https://www.findcompany.com.tw/ >>not find[%s]' % name
-        status = False
-        # print('https://www.findcompany.com.tw/ >>not find[%s]' % name)
-    else:
-        msg = 'https://www.findcompany.com.tw/ >>[%s] get phone is [%s]' % (name, phone)
-        status = True
-    w_log(msg)
-    # print(msg)
+            pass
+    w_log_update(name, phone, url)
     return status, phone
+
+
+def archi(name):
+    headers = {
+        'User-Agent': fake.user_agent(),
+    }
+    status = False
+    phone = None
+    url = 'https://www.archi.net.tw/tw/yelpage/company.asp'
+    page = requests.get(url + '?cate=&vcusarea2=0&vkeyword=%s' % name, headers=headers)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    items = soup.find_all('div', class_='item')
+    for i in items:
+        c_name = i.find('a').get('title')
+        if c_name == name:
+            phone = i.find('div', class_='contact').find_all('li')[1].find('a').get('title').replace('tel:', '').replace(' ', '').strip()
+            status = True
+    w_log_update(name, phone, url)
+    return status, phone
+
+
+def w_log_update(name, phone, url):
+    if phone is None:
+        msg = url + '>>not find[%s]' % name
+    else:
+        msg = url + '>>[%s] get phone is [%s]' % (name, phone)
+    w_log(msg)
 
 
 def execute(df):
@@ -104,6 +117,11 @@ def execute(df):
         # if str(phone) != 'nan' and len(str(phone)) > 8:
         #     continue
         status, phone = find_company(name)
+        if status:
+            # 更新 '電話' 列的值
+            df.at[index, '電話'] = phone
+            continue
+        status, phone = archi(name)
         if status:
             # 更新 '電話' 列的值
             df.at[index, '電話'] = phone
