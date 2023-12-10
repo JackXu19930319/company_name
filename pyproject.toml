@@ -9,6 +9,11 @@ packages = [{include = "company_name"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 requests = "^2.31.0"
+pandas = "^2.1.4"
+openpyxl = "^3.1.2"
+bs4 = "^0.0.1"
+tqdm = "^4.66.1"
+faker = "^20.1.0"
 
 
 [build-system]
