@@ -224,6 +224,21 @@ files = [
 python-dateutil = ">=2.4"
 
 [[package]]
+name = "googlesearch-python"
+version = "1.2.3"
+description = "A Python library for scraping the Google search engine."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "googlesearch-python-1.2.3.tar.gz", hash = "sha256:38b251121dd140439bd08cdf2a05a0b195d852908ee2bfed30e57d16aa68ae5e"},
+]
+
+[package.dependencies]
+beautifulsoup4 = ">=4.9"
+requests = ">=2.20"
+
+[[package]]
 name = "idna"
 version = "3.6"
 description = "Internationalized Domain Names in Applications (IDNA)"
@@ -828,4 +843,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "770b32c2ed85da02d4f8a7dd0102cf0eab01b685e42f1d0598a81a7aab7189a0"
+content-hash = "1c9dfd2ec4e9d8b3a6ef9d3f5f82b7f2d07bed44b6ac4a3e7feec04d7d1c509d"
