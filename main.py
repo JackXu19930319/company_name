@@ -86,7 +86,6 @@ def request(method, url, **kwargs):
 
 
 def get_page(method, url, **kwargs):
-    e = ""
     res = None
     for i in range(3):
         try:
@@ -99,10 +98,9 @@ def get_page(method, url, **kwargs):
                 sys.exit('request error')
             return res
         except Exception as e:
-            time.sleep(1)
+            time.sleep(5)
+            # w_log(f"Error>>> url {url}, e: {str(e)}")
             continue
-    w_log(f"ERROR >>> [{url}] [{str(e)}]")
-    sys.exit('request error')
 
 
 def get_area_list():
@@ -166,6 +164,8 @@ def find_company(name):
         }
         url = 'https://www.findcompany.com.tw'
         page = get_page('get', url, headers=headers)
+        if page is None:
+            return status, phone
         # page = requests.get(url + '/%s' % name, headers=headers)
         soup = BeautifulSoup(page.content, 'html.parser')
         if '登記電話' in soup.text:
@@ -191,6 +191,8 @@ def archi(name):
     try:
         url = 'https://www.archi.net.tw/tw/yelpage/company.asp'
         page = get_page('get', url + '?cate=&vcusarea2=0&vkeyword=%s' % name, headers=headers)
+        if page is None:
+            return status, phone
         soup = BeautifulSoup(page.content, 'html.parser')
         items = soup.find_all('div', class_='item')
         for i in items:
@@ -218,6 +220,8 @@ def zhupiter(name):
     try:
         url = 'https://cse.google.com/cse.js?cx=partner-pub-4027255886607766:3055970085'
         pre_page = get_page('get', url, headers=headers)
+        if pre_page is None:
+            return status, phone
         for line in pre_page.text.splitlines():
             if '"cse_token":' in line:
                 cse_token = line[:-1].replace('cse_token":', '').strip().replace('"', '')
@@ -233,6 +237,8 @@ def zhupiter(name):
         main_url = main_url + '&q=' + name
         main_url = main_url + '&cse_tok=' + cse_token
         page = get_page('get', main_url, headers=headers)
+        if page is None:
+            return status, phone
         tmp_str = page.text
         tmp_str = tmp_str.replace('/*O_o*/', '').replace('google.search.cse.api7132(', '').replace(');', '')
         json_obj = json.loads(tmp_str)
@@ -271,6 +277,8 @@ def twincn(number):
         }
         url = f'https://www.twincn.com/item.aspx?no={number}'
         page = get_page('get', url, headers=headers)
+        if page is None:
+            return status, phone
         soup = BeautifulSoup(page.text, 'html.parser')
         if soup.find('div', class_='table-responsive') is not None:
             tables = soup.find('div', class_='table-responsive').find_all('tr')
@@ -307,7 +315,7 @@ def google_search_execute(name):
         for idx, result in enumerate(search_results, start=1):
             content = get_page('get', result, headers=headers)
             if content is None:
-                continue
+                return status, phone
             soup = BeautifulSoup(content.text, 'html.parser')
             # 提取頁面內容
             content = soup.get_text()
