@@ -104,19 +104,29 @@ def get_page(method, url, **kwargs):
 
 
 def get_area_list():
-    res = request('get', 'https://104.cht.com.tw/WebAP/Query.aspx')
-    if len(area_list) > 0:
-        return area_list
-    for area in res.html.find('area'):
-        area_list.append({'code': area.attrs['code'], 'area': area.attrs['alt']})
+    area_list = []
+    try:
+        res = request('get', 'https://104.cht.com.tw/WebAP/Query.aspx')
+        if len(area_list) > 0:
+            return area_list
+        for area in res.html.find('area'):
+            area_list.append({'code': area.attrs['code'], 'area': area.attrs['alt']})
+    except:
+        msg = f"e_zeor_get_area_list: {e}"
+        w_log(f"ERROR>>> {msg}")
     return area_list
 
 
 def get_params():
-    res = request('get', 'https://104.cht.com.tw/WebAP/Query.aspx')
-    __VIEWSTATE = res.html.find('#__VIEWSTATE', first=True).attrs['value']
-    __VIEWSTATEGENERATOR = res.html.find('#__VIEWSTATEGENERATOR', first=True).attrs['value']
-    return __VIEWSTATE, __VIEWSTATEGENERATOR
+    try:
+        res = request('get', 'https://104.cht.com.tw/WebAP/Query.aspx')
+        __VIEWSTATE = res.html.find('#__VIEWSTATE', first=True).attrs['value']
+        __VIEWSTATEGENERATOR = res.html.find('#__VIEWSTATEGENERATOR', first=True).attrs['value']
+        return __VIEWSTATE, __VIEWSTATEGENERATOR
+    except:
+        msg = f"e_zeor_get_params: {e}"
+        w_log(f"ERROR>>> {msg}")
+        return None, None
 
 
 def e_zeor(keyword):
@@ -125,9 +135,13 @@ def e_zeor(keyword):
     msg = ''
     try:
         area_list = get_area_list()
+        if len(area_list) == 0:
+            raise
         url = "https://104.cht.com.tw/WebAP/Query.aspx"
         for area in area_list:
             __VIEWSTATE, __VIEWSTATEGENERATOR = get_params()
+            if __VIEWSTATE is None:
+                raise
             payload = {
                 'oneScriptManager': 'oneScriptManager|btnSend',
                 '__VIEWSTATEENCRYPTED': '',
@@ -352,6 +366,8 @@ def execute(df):
         num = value.get('統一編號')
         if len(str(num)) < 8:
             num = str(num).zfill(8)
+        if '.' in str(num):
+            num = str(num).split('.')[0]
         if str(name) == 'nan' or str(name) == '':
             continue
         if str(phone) != 'nan' and len(str(phone)) > 8:
