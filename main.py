@@ -87,6 +87,7 @@ def request(method, url, **kwargs):
 
 def get_page(method, url, **kwargs):
     res = None
+    w_log(f'method:{method}, {url}')
     for i in range(3):
         try:
             if method == 'get':
@@ -176,7 +177,7 @@ def find_company(name):
         headers = {
             'User-Agent': fake.user_agent(),
         }
-        url = 'https://www.findcompany.com.tw'
+        url = f'https://www.findcompany.com.tw/search/{name}'
         page = get_page('get', url, headers=headers)
         if page is None:
             return status, phone
