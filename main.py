@@ -5,6 +5,7 @@ import re
 from googlesearch import search
 import sys
 import time
+import socket
 from datetime import datetime
 
 from requests_html import HTMLSession
@@ -26,6 +27,25 @@ read_data = []
 area_list = []
 
 is_print = True
+
+
+def check_internet_connection(host="8.8.8.8", port=53, timeout=3):
+    """
+    Check if there is an internet connection.
+
+    :param host: Host to connect to for checking the connection. Defaults to Google's DNS server.
+    :param port: Port number. Defaults to 53, which is the DNS service.
+    :param timeout: Timeout in seconds for the connection attempt.
+    :return: True if the connection is successful, False otherwise.
+    """
+    try:
+        # Attempt to establish a socket connection to the specified host and port
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error as ex:
+        print(f"Connection failed: {ex}")
+        return False
 
 
 def w_log(new_log_message):
@@ -85,15 +105,19 @@ def request(method, url, **kwargs):
     sys.exit('request error')
 
 
-def get_page(method, url, **kwargs):
+def get_page(method, url, timeout=10, **kwargs):
     res = None
     w_log(f'method:{method}, {url}')
+    is_connected = check_internet_connection()
+    if not is_connected:
+        w_log('網路有問題')
+        return res
     for i in range(3):
         try:
             if method == 'get':
-                res = requests.get(url, **kwargs)
+                res = requests.get(url, timeout=timeout, **kwargs)
             elif method == 'post':
-                res = requests.post(url, **kwargs)
+                res = requests.post(url, timeout=timeout, **kwargs)
             time.sleep(0.5)
             if res is None:
                 sys.exit('request error')
@@ -102,6 +126,7 @@ def get_page(method, url, **kwargs):
             time.sleep(5)
             # w_log(f"Error>>> url {url}, e: {str(e)}")
             continue
+    return res
 
 
 def get_area_list():
